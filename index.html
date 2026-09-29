@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Life & MHT CET Prep Tracker</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        },
+                        tealBrand: {
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                        },
+                        amberBrand: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased bg-slate-50 flex flex-col font-sans">
+
+    <!-- App Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2.5 rounded-2xl text-white shadow-md shadow-brand-500/20">
+                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-700 to-indigo-600">
+                            Routine & Exam Tracker
+                        </h1>
+                        <p class="text-xs font-medium text-slate-500">MHT CET 2026 & Life Reset Dashboard</p>
+                    </div>
+                </div>
+                <!-- Mobile Reset Button -->
+                <button onclick="confirmResetDay()" class="md:hidden p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Reset Today">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Quote Banner Widget -->
+            <div class="hidden lg:flex items-center bg-brand-50/80 border border-brand-200/60 rounded-xl px-4 py-2 max-w-md">
+                <i data-lucide="quote" class="w-4 h-4 text-brand-500 mr-2 shrink-0"></i>
+                <p id="quoteDisplay" class="text-xs text-brand-700 font-medium italic truncate">"Consistency beats intensity every single day."</p>
+            </div>
+
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+                <button onclick="confirmResetDay()" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition border border-rose-200">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Reset Day</span>
+                </button>
+                <div class="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                    <i data-lucide="flame" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                    <span>Streak: <span id="streakCount" class="text-brand-600">0</span> Days</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Analytics & Overview Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Completion Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Daily Progress</p>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-1" id="overallScoreText">0%</h3>
+                    </div>
+                    <div class="p-2.5 bg-brand-50 text-brand-600 rounded-xl">
+                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-3">
+                    <div id="overallProgressBar" class="bg-gradient-to-r from-brand-500 to-indigo-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-2"><span id="tasksDoneCount">0</span> of <span id="tasksTotalCount">0</span> tasks completed</p>
+            </div>
+
+            <!-- Study Target Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">MHT CET Study Target</p>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-1"><span id="studyHoursText">0</span> / 6 <span class="text-sm font-normal text-slate-500">hrs</span></h3>
+                    </div>
+                    <div class="p-2.5 bg-amber-50 text-amberBrand-600 rounded-xl">
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 mt-4">
+                    <button onclick="adjustStudyHours(-0.5)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-xs font-bold transition">-0.5h</button>
+                    <button onclick="adjustStudyHours(0.5)" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-bold transition">+0.5h</button>
+                    <span class="text-[11px] text-slate-500 ml-auto">Goal: 6 Hours</span>
+                </div>
+            </div>
+
+            <!-- Tech Upskill Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tech & Applications</p>
+                        <h3 class="text-2xl font-extrabold text-slate-800 mt-1" id="techStatusText">Pending</h3>
+                    </div>
+                    <div class="p-2.5 bg-teal-50 text-tealBrand-600 rounded-xl">
+                        <i data-lucide="code" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 mt-4">
+                    <button id="toggleTechBtn" onclick="toggleTechDone()" class="w-full py-1.5 px-3 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Mark Done Today</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reels Discipline Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Reels Discipline</p>
+                        <h3 class="text-xl font-bold text-slate-800 mt-1" id="reelsPledgeStatus">Pledge Active</h3>
+                    </div>
+                    <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+                        <i data-lucide="smartphone-off" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <button id="reelsToggleBtn" onclick="toggleReelsPledge()" class="mt-4 w-full py-1.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span id="reelsBtnText">Pledged: Under 30 Mins</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content 2-Column Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left 2 Columns: Time Block Daily Checklist -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Section Title & Custom Add -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="list-checks" class="w-5 h-5 text-brand-600"></i>
+                        <h2 class="font-bold text-slate-800 text-base">6 Daily Focus Blocks</h2>
+                    </div>
+                    
+                    <!-- Custom Task Input -->
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <input type="text" id="customTaskInput" placeholder="Add custom task..." class="w-full sm:w-48 text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <button onclick="addCustomTask()" class="px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition flex items-center shrink-0">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Time Blocks Container -->
+                <div id="timeBlocksContainer" class="space-y-4">
+                    <!-- Dynamic Blocks Rendered Here via JS -->
+                </div>
+
+            </div>
+
+            <!-- Right Column: Sidebar Widgets -->
+            <div class="space-y-6">
+
+                <!-- Pomodoro Focus Timer -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="timer" class="w-5 h-5 text-indigo-600"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">Focus Study Timer</h3>
+                        </div>
+                        <span id="timerModeLabel" class="text-[10px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md uppercase">Pomodoro</span>
+                    </div>
+
+                    <div class="text-center py-4 bg-slate-50 rounded-2xl border border-slate-100 my-2">
+                        <div id="timerDisplay" class="text-4xl font-black text-slate-800 tracking-tight font-mono">25:00</div>
+                        <p id="timerStatusText" class="text-xs text-slate-400 font-medium mt-1">Ready to focus</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 my-3">
+                        <button onclick="setTimerMode(25)" class="py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">25 Min</button>
+                        <button onclick="setTimerMode(50)" class="py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">50 Min</button>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="startTimerBtn" onclick="toggleTimer()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1 shadow-sm shadow-brand-500/20">
+                            <i data-lucide="play" class="w-4 h-4"></i>
+                            <span>Start Focus</span>
+                        </button>
+                        <button onclick="resetTimer()" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Thyroid & Health Tracker -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="heart-pulse" class="w-5 h-5 text-rose-500"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">Thyroid & Health Tracker</h3>
+                        </div>
+                    </div>
+
+                    <!-- Water Tracker -->
+                    <div class="bg-sky-50/60 p-3.5 rounded-xl border border-sky-100 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-sky-500 text-white rounded-lg">
+                                <i data-lucide="droplet" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-sky-900">Hydration Goal</p>
+                                <p class="text-[11px] text-sky-600"><span id="waterGlassesCount">0</span> / 8 Glasses</p>
+                            </div>
+                        </div>
+                        <button onclick="addWaterGlass()" class="p-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Health Check Toggles -->
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-100 cursor-pointer transition">
+                            <span class="text-xs font-semibold text-slate-700 flex items-center space-x-2">
+                                <i data-lucide="pill" class="w-4 h-4 text-brand-500"></i>
+                                <span>Thyroid Medication Taken</span>
+                            </span>
+                            <input type="checkbox" id="thyroidMedsCheck" onchange="toggleHealthCheck('meds')" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+                        </label>
+
+                        <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-100 cursor-pointer transition">
+                            <span class="text-xs font-semibold text-slate-700 flex items-center space-x-2">
+                                <i data-lucide="footprints" class="w-4 h-4 text-teal-500"></i>
+                                <span>Light Walk / Gentle Stretch</span>
+                            </span>
+                            <input type="checkbox" id="gentleExCheck" onchange="toggleHealthCheck('exercise')" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+                        </label>
+
+                        <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-100 cursor-pointer transition">
+                            <span class="text-xs font-semibold text-slate-700 flex items-center space-x-2">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                                <span>Morning & Night Skin Care</span>
+                            </span>
+                            <input type="checkbox" id="skinCareCheck" onchange="toggleHealthCheck('skincare')" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 7-Day Performance Analytics Chart -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-brand-600"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">7-Day Consistency History</h3>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Tracking your completion rate (%) over the 1-week reset challenge.</p>
+
+                    <div class="h-44 w-full">
+                        <canvas id="weeklyHistoryChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Sound Effect Audio Generator via Web Audio API -->
+    <script>
+        // Web Audio API synth sound generator for notifications (no external audio links needed)
+        function playCompletionTone() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                console.log('Audio Context Error:', e);
+            }
+        }
+
+        // Dynamic Motivation Quotes
+        const quotes = [
+            "Consistency beats intensity every single day.",
+            "You do not need to fix your whole life today, just execute Block 1.",
+            "Action creates motivation, not the other way around.",
+            "Your MHT CET rank is being decided by today's effort.",
+            "Small daily wins lead to massive life resets."
+        ];
+
+        // Core App Initial Default State
+        const defaultRoutineBlocks = [
+            {
+                id: 'block1',
+                title: 'Block 1: Morning Fresh Start & Health',
+                time: '6:00 AM – 8:00 AM',
+                color: 'amber',
+                tasks: [
+                    { id: 'b1_1', text: 'Wake up 6:00 AM & drink 2 glasses lukewarm water', completed: false },
+                    { id: 'b1_2', text: 'Gentle walk / stretching (30-40 mins)', completed: false },
+                    { id: 'b1_3', text: 'Morning Skin Care (Cleanser + Moisturizer + Sunscreen)', completed: false },
+                    { id: 'b1_4', text: 'Nourishing protein breakfast (No Maggi / fast food)', completed: false }
+                ]
+            },
+            {
+                id: 'block2',
+                title: 'Block 2: Prime Study Time (MHT CET)',
+                time: '8:00 AM – 11:30 AM',
+                color: 'purple',
+                tasks: [
+                    { id: 'b2_1', text: 'MHT CET Study Session 1 (Core Hard Subject)', completed: false },
+                    { id: 'b2_2', text: 'Solve 30-50 Target MCQs / PYQs', completed: false },
+                    { id: 'b2_3', text: '15-min screen-free water break', completed: false }
+                ]
+            },
+            {
+                id: 'block3',
+                title: 'Block 3: Nutrition & Home Chores',
+                time: '11:30 AM – 2:00 PM',
+                color: 'teal',
+                tasks: [
+                    { id: 'b3_1', text: 'Cook wholesome home-cooked lunch (Roti/Sabzi/Dal)', completed: false },
+                    { id: 'b3_2', text: 'Eat lunch mindfully without phone screens', completed: false },
+                    { id: 'b3_3', text: 'Quick kitchen cleanup & 20 min nap/rest', completed: false }
+                ]
+            },
+            {
+                id: 'block4',
+                title: 'Block 4: Tech Upskilling & Job Applications',
+                time: '2:00 PM – 3:30 PM',
+                color: 'indigo',
+                tasks: [
+                    { id: 'b4_1', text: '45 Mins SQL/Coding Hands-on practice', completed: false },
+                    { id: 'b4_2', text: 'Apply to 3-5 entry level IT/Support jobs in Pune', completed: false }
+                ]
+            },
+            {
+                id: 'block5',
+                title: 'Block 5: Afternoon MHT CET Focus',
+                time: '3:30 PM – 5:00 PM',
+                color: 'purple',
+                tasks: [
+                    { id: 'b5_1', text: 'MHT CET Study Session 2 (Maths/Chemistry)', completed: false },
+                    { id: 'b5_2', text: 'Formula note review & problem solving', completed: false }
+                ]
+            },
+            {
+                id: 'block6',
+                title: 'Block 6: Evening Refresh, Dinner & Night Review',
+                time: '5:00 PM – 10:30 PM',
+                color: 'emerald',
+                tasks: [
+                    { id: 'b6_1', text: 'Evening tea + light 20-min stroll', completed: false },
+                    { id: 'b6_2', text: 'Evening Skin Care refresh', completed: false },
+                    { id: 'b6_3', text: 'Dinner prep & quality family time', completed: false },
+                    { id: 'b6_4', text: '1 Hour Night Revision (Flashcards/Formulas)', completed: false },
+                    { id: 'b6_5', text: '10:30 PM Sleep target for physical recovery', completed: false }
+                ]
+            }
+        ];
+
+        // Application State
+        let appData = {
+            routineBlocks: JSON.parse(JSON.stringify(defaultRoutineBlocks)),
+            studyHours: 0,
+            techDone: false,
+            reelsPledged: true,
+            waterGlasses: 0,
+            healthChecks: { meds: false, exercise: false, skincare: false },
+            streak: 1,
+            weeklyHistory: [60, 75, 40, 80, 85, 90, 0] // Past 7 days percentage
+        };
+
+        // Timer Variables
+        let timerSeconds = 25 * 60;
+        let timerTotalSeconds = 25 * 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let weeklyChartInstance = null;
+
+        // Initialize Application
+        window.onload = function() {
+            loadFromLocalStorage();
+            renderQuotes();
+            renderRoutineBlocks();
+            updateDashboard();
+            initChart();
+            lucide.createIcons();
+        };
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('mhtcet_life_tracker_data');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) {
+                    console.error('Error loading saved state:', e);
+                }
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('mhtcet_life_tracker_data', JSON.stringify(appData));
+            updateDashboard();
+        }
+
+        function renderQuotes() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            const quoteEl = document.getElementById('quoteDisplay');
+            if(quoteEl) quoteEl.innerText = `"${randomQuote}"`;
+        }
+
+        function renderRoutineBlocks() {
+            const container = document.getElementById('timeBlocksContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            appData.routineBlocks.forEach((block, blockIdx) => {
+                const blockEl = document.createElement('div');
+                blockEl.className = "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition hover:border-slate-300";
+
+                const completedCount = block.tasks.filter(t => t.completed).length;
+                const totalCount = block.tasks.length;
+                const isBlockDone = totalCount > 0 && completedCount === totalCount;
+
+                blockEl.innerHTML = `
+                    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-bold text-slate-800 text-sm">${block.title}</h3>
+                                ${isBlockDone ? `<span class="px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-700 font-bold rounded-full">Completed</span>` : ''}
+                            </div>
+                            <p class="text-xs text-slate-500 font-medium">${block.time}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg self-start sm:self-auto">
+                            ${completedCount}/${totalCount} Done
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-2.5">
+                        ${block.tasks.map((task, taskIdx) => `
+                            <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition ${task.completed ? 'opacity-65' : ''}">
+                                <label class="flex items-center space-x-3 cursor-pointer w-full">
+                                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                                        onchange="toggleTask(${blockIdx}, ${taskIdx})" 
+                                        class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300">
+                                    <span class="text-xs font-medium ${task.completed ? 'line-through text-slate-400' : 'text-slate-700'}">
+                                        ${task.text}
+                                    </span>
+                                </label>
+                                <button onclick="deleteTask(${blockIdx}, ${taskIdx})" class="p-1 text-slate-300 hover:text-rose-500 transition rounded-md opacity-0 hover:opacity-100 focus:opacity-100">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                container.appendChild(blockEl);
+            });
+
+            lucide.createIcons();
+        }
+
+        function toggleTask(blockIdx, taskIdx) {
+            appData.routineBlocks[blockIdx].tasks[taskIdx].completed = !appData.routineBlocks[blockIdx].tasks[taskIdx].completed;
+            if (appData.routineBlocks[blockIdx].tasks[taskIdx].completed) {
+                playCompletionTone();
+            }
+            saveToLocalStorage();
+            renderRoutineBlocks();
+        }
+
+        function addCustomTask() {
+            const input = document.getElementById('customTaskInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add to the first active time block by default
+            appData.routineBlocks[0].tasks.push({
+                id: 'custom_' + Date.now(),
+                text: text,
+                completed: false
+            });
+
+            input.value = '';
+            saveToLocalStorage();
+            renderRoutineBlocks();
+        }
+
+        function deleteTask(blockIdx, taskIdx) {
+            appData.routineBlocks[blockIdx].tasks.splice(taskIdx, 1);
+            saveToLocalStorage();
+            renderRoutineBlocks();
+        }
+
+        function updateDashboard() {
+            // Calculate Total Tasks Completion
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            appData.routineBlocks.forEach(b => {
+                b.tasks.forEach(t => {
+                    totalTasks++;
+                    if (t.completed) completedTasks++;
+                });
+            });
+
+            const overallPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            document.getElementById('overallScoreText').innerText = overallPct + '%';
+            document.getElementById('overallProgressBar').style.width = overallPct + '%';
+            document.getElementById('tasksDoneCount').innerText = completedTasks;
+            document.getElementById('tasksTotalCount').innerText = totalTasks;
+
+            // Study Hours
+            document.getElementById('studyHoursText').innerText = appData.studyHours;
+
+            // Tech Status
+            const techText = document.getElementById('techStatusText');
+            const techBtn = document.getElementById('toggleTechBtn');
+            if (appData.techDone) {
+                techText.innerText = 'Done Today';
+                techText.className = 'text-2xl font-extrabold text-teal-600 mt-1';
+                techBtn.className = 'w-full py-1.5 px-3 bg-teal-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1';
+            } else {
+                techText.innerText = 'Pending';
+                techText.className = 'text-2xl font-extrabold text-slate-800 mt-1';
+                techBtn.className = 'w-full py-1.5 px-3 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1';
+            }
+
+            // Reels Pledge
+            const reelsStatus = document.getElementById('reelsPledgeStatus');
+            const reelsBtnText = document.getElementById('reelsBtnText');
+            if (appData.reelsPledged) {
+                reelsStatus.innerText = 'Pledge Active';
+                reelsStatus.className = 'text-xl font-bold text-emerald-600 mt-1';
+                reelsBtnText.innerText = 'Pledged: Under 30 Mins';
+            } else {
+                reelsStatus.innerText = 'Pledge Broken';
+                reelsStatus.className = 'text-xl font-bold text-rose-600 mt-1';
+                reelsBtnText.innerText = 'Click to Re-pledge';
+            }
+
+            // Streak Count
+            document.getElementById('streakCount').innerText = appData.streak;
+
+            // Health Inputs
+            document.getElementById('waterGlassesCount').innerText = appData.waterGlasses;
+            document.getElementById('thyroidMedsCheck').checked = appData.healthChecks.meds;
+            document.getElementById('gentleExCheck').checked = appData.healthChecks.exercise;
+            document.getElementById('skinCareCheck').checked = appData.healthChecks.skincare;
+
+            // Update Current Day on Chart
+            if (appData.weeklyHistory && appData.weeklyHistory.length > 0) {
+                appData.weeklyHistory[appData.weeklyHistory.length - 1] = overallPct;
+                if (weeklyChartInstance) {
+                    weeklyChartInstance.data.datasets[0].data = appData.weeklyHistory;
+                    weeklyChartInstance.update();
+                }
+            }
+        }
+
+        // Adjust Study Hours
+        function adjustStudyHours(delta) {
+            appData.studyHours = Math.max(0, Math.min(12, appData.studyHours + delta));
+            saveToLocalStorage();
+        }
+
+        // Toggle Tech Status
+        function toggleTechDone() {
+            appData.techDone = !appData.techDone;
+            if (appData.techDone) playCompletionTone();
+            saveToLocalStorage();
+        }
+
+        // Toggle Reels Pledge
+        function toggleReelsPledge() {
+            appData.reelsPledged = !appData.reelsPledged;
+            saveToLocalStorage();
+        }
+
+        // Health Trackers
+        function addWaterGlass() {
+            appData.waterGlasses = Math.min(12, appData.waterGlasses + 1);
+            saveToLocalStorage();
+        }
+
+        function toggleHealthCheck(type) {
+            if (type === 'meds') appData.healthChecks.meds = document.getElementById('thyroidMedsCheck').checked;
+            if (type === 'exercise') appData.healthChecks.exercise = document.getElementById('gentleExCheck').checked;
+            if (type === 'skincare') appData.healthChecks.skincare = document.getElementById('skinCareCheck').checked;
+            saveToLocalStorage();
+        }
+
+        function setTimerMode(mins) {
+            if (isTimerRunning) toggleTimer();
+            timerSeconds = mins * 60;
+            timerTotalSeconds = mins * 60;
+            document.getElementById('timerModeLabel').innerText = `${mins} Min Focus`;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startTimerBtn');
+            const statusText = document.getElementById('timerStatusText');
+
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Resume Focus</span>`;
+                btn.className = 'flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1 shadow-sm shadow-brand-500/20';
+                statusText.innerText = 'Paused';
+            } else {
+                isTimerRunning = true;
+                btn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i><span>Pause</span>`;
+                btn.className = 'flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1';
+                statusText.innerText = 'Focus in progress...';
+
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        playCompletionTone();
+                        alert('Focus Session Completed! Take a short stretch break.');
+                        statusText.innerText = 'Session completed!';
+                        btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Start Focus</span>`;
+                    }
+                }, 1000);
+            }
+            lucide.createIcons();
+        }
+
+        function resetTimer() {
+            if (isTimerRunning) toggleTimer();
+            timerSeconds = timerTotalSeconds;
+            updateTimerDisplay();
+            document.getElementById('timerStatusText').innerText = 'Ready to focus';
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('weeklyHistoryChart').getContext('2d');
+            
+            weeklyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'],
+                    datasets: [{
+                        label: 'Completion %',
+                        data: appData.weeklyHistory,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#7c3aed',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 25,
+                                font: { size: 10 }
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function confirmResetDay() {
+            if (confirm("Are you sure you want to reset today's tracker? This will reset checklist checkboxes and daily counts.")) {
+                appData.routineBlocks = JSON.parse(JSON.stringify(defaultRoutineBlocks));
+                appData.studyHours = 0;
+                appData.techDone = false;
+                appData.reelsPledged = true;
+                appData.waterGlasses = 0;
+                appData.healthChecks = { meds: false, exercise: false, skincare: false };
+
+                saveToLocalStorage();
+                renderRoutineBlocks();
+                updateDashboard();
+            }
+        }
+    </script>
+</body>
+</html>
